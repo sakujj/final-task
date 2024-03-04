@@ -7,6 +7,9 @@ import io.github.sakujj.nms.entity.News.Fields;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+/**
+ * A mapper for {@link News} entity
+ */
 @Mapper(componentModel = "spring")
 public interface NewsMapper {
 

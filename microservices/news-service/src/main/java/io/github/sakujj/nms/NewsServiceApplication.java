@@ -7,10 +7,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableJpaRepositories(basePackages = "io.github.sakujj.nms.repository")
 public class NewsServiceApplication {
 
+    public static final String NEWS_CONTROLLER_URI = "/news";
+
     public static void main(String[] args) {
+
         SpringApplication.run(NewsServiceApplication.class, args);
     }
 }

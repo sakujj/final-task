@@ -12,25 +12,15 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * A JPA repository for {@link News} entity
+ */
 @Repository
 public interface NewsRepository extends JpaRepository<News, UUID> {
 
-    @Query(value = """
-            UPDATE News SET
-                title = :titleUpdated,
-                text = :textUpdated,
-                update_time = :updateTime
-            WHERE id = :id
-            """, nativeQuery = true)
-    @Modifying(flushAutomatically = true, clearAutomatically = true)
-    int updateById(
-            @Param("id") UUID id,
-            @Param("textUpdated") String textUpdated,
-            @Param("titleUpdated") String titleUpdated,
-            @Param("updateTime") LocalDateTime updateTime
-    );
+    Page<News> findByTitleContaining(String containedInTitle, Pageable pageable);
 
-    Page<News> findByTitleContaining(String content, Pageable pageable);
+    Page<News> findByTitleContainingAndUsernameContaining(String containedInTitle, String containedInUsername, Pageable pageable);
 
-    Page<News> findByUsernameContaining(String content, Pageable pageable);
+    Page<News> findByUsernameContaining(String containedInUsername, Pageable pageable);
 }

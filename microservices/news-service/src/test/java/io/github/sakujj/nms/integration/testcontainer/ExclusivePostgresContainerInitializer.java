@@ -1,4 +1,4 @@
-package io.github.sakujj.nms.testcontainer;
+package io.github.sakujj.nms.integration.testcontainer;
 
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;

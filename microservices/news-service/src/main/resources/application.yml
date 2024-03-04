@@ -5,6 +5,18 @@ eureka:
 
 server:
   port: 8091
+  forward-headers-strategy: NATIVE
+#  servlet:
+#    encoding:
+#      charset: UTF-8
+#      force: true
+
+springdoc:
+  swagger-ui:
+    path: /news/swagger
+    operations-sorter: method
+  api-docs:
+    path: /news/api-docs
 
 spring:
   application:

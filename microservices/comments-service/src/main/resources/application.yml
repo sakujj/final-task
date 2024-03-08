@@ -1,0 +1,48 @@
+eureka.client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+
+server:
+  port: 8092
+  forward-headers-strategy: NATIVE
+
+springdoc:
+  swagger-ui:
+    path: /comments/swagger
+    operations-sorter: method
+  api-docs:
+    path: /comments/api-docs
+
+spring.application:
+  name: comments-service
+
+spring.liquibase:
+  change-log: "classpath:db/changelog/root.yml"
+
+spring.data:
+  web:
+    pageable:
+      page-parameter: page
+      size-parameter: size
+      default-page-size: 15
+      max-page-size: 250
+
+spring.datasource:
+#  url: jdbc:postgresql://127.0.0.1:5433/main_db
+  driverClassName: org.postgresql.Driver
+  username: admin
+  password: password
+
+spring.jpa:
+  database-platform: org.hibernate.dialect.PostgreSQLDialect
+  show-sql: true
+  properties:
+    hibernate:
+      format_sql: true
+      ddl-auto: validate
+
+spring.security:
+  oauth2:
+    resourceserver:
+      jwt:
+        issuer-uri: http://localhost:8080/realms/sakujj

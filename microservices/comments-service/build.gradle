@@ -1,0 +1,39 @@
+plugins {
+    id 'build-conventions'
+    id 'jacoco'
+}
+
+test {
+    finalizedBy jacocoTestReport // report is always generated after tests run
+}
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+}
+
+dependencies {
+    implementation "io.github.sakujj:aop-cache-spring-boot-starter:${customCacheStarterVersion}"
+
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openapiVersion}"
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'org.liquibase:liquibase-core'
+
+    runtimeOnly 'org.postgresql:postgresql'
+
+    testImplementation 'org.postgresql:postgresql'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+
+}

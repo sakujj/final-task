@@ -1,0 +1,47 @@
+nms:
+  news-service:
+    name: news-service
+  comments-service:
+    name: comments-service
+  eureka-server:
+    uri: http://localhost:8761
+
+eureka.client:
+  serviceUrl.defaultZone: ${nms.eureka-server.uri}/eureka
+
+server:
+  port: 8090
+
+spring.application:
+  name: api-gateway
+
+spring.cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: 'true'
+          lower-case-service-id: 'true'
+
+spring.security:
+  oauth2:
+    client:
+      provider.keycloak:
+        issuer-uri: http://localhost:8080/realms/sakujj
+        user-name-attribute: preferred_username
+      registration.keycloak-client:
+        provider: keycloak
+        client-id: news-management-system
+        client-secret: Bqg55iZpWg6OCnobrdD7zGEvIJ2DEr7X
+        authorization-grant-type: authorization_code
+        scope: openid
+    resourceserver:
+      jwt:
+        issuer-uri: http://localhost:8080/realms/sakujj
+
+logging.level:
+    root: INFO
+    org:
+      springframework:
+        boot.autoconfigure.web: TRACE
+        cloud.gateway: TRACE
+        cloud.gateway.route.RouteDefinitionLocator: TRACE

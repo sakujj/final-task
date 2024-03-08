@@ -1,3 +1,3 @@
-spring:
-  datasource:
-    driverClassName: org.postgresql.Driver
+eureka.client.enabled: false
+
+feign.client.config.default.loggerLevel: full

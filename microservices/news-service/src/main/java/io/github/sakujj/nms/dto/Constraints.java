@@ -7,7 +7,11 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class Constraints {
-    public static final String TITLE_PATTERN = ".{5,255}";
+    public static final String TITLE_PATTERN = "\\S+(.*\\S+)?";
+    public static final int TITLE_MAX_LENGTH = 255;
+    public static final int TITLE_MIN_LENGTH = 1;
 
-    public static final String TEXT_PATTERN = ".{20,200000}";
+    public static final String TEXT_PATTERN = "\\S+(.*\\S+)?";
+    public static final int TEXT_MAX_LENGTH = 200_000;
+    public static final int TEXT_MIN_LENGTH = 1;
 }

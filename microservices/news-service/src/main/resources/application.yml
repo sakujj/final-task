@@ -6,10 +6,6 @@ eureka:
 server:
   port: 8091
   forward-headers-strategy: NATIVE
-#  servlet:
-#    encoding:
-#      charset: UTF-8
-#      force: true
 
 springdoc:
   swagger-ui:
@@ -29,7 +25,7 @@ spring:
         default-page-size: 15
         max-page-size: 250
   datasource:
-    url: jdbc:postgresql://127.0.0.1:5432/main_db
+#    url: jdbc:postgresql://127.0.0.1:5432/main_db
     driverClassName: org.postgresql.Driver
     username: admin
     password: password
@@ -47,3 +43,13 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/realms/sakujj
+
+spring.cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            loggerLevel: full
+
+logging.level:
+  io.github.sakujj.nms.httpclient: DEBUG

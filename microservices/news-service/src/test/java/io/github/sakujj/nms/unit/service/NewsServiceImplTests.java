@@ -394,362 +394,68 @@ public class NewsServiceImplTests {
     }
 
     @Nested
-    @DisplayName("createWithAssignedId (NewsRequest, UUID, UUID, String)")
-    class createWithAssignedId {
+    @DisplayName("update (UUID, NewsRequest)")
+    class update {
 
         @Test
-        void shouldCreateWithAssignedId() {
-
-            // given
-            NewsTestBuilder anArticle = NewsTestBuilder.anArticle();
-
-            NewsRequest newsRequestToCreate = anArticle.buildRequest();
-            UUID expectedAssignedId = anArticle.getId();
-            UUID expectedAuthorId = anArticle.getAuthorId();
-            String expectedUsername = anArticle.getUsername();
-
-            News mappedNewsFromRequest = News.builder()
-                    .title(newsRequestToCreate.getTitle())
-                    .text(newsRequestToCreate.getText())
-                    .build();
-
-            when(newsMapper.fromRequest(newsRequestToCreate))
-                    .thenReturn(mappedNewsFromRequest);
-
-            News expectedFromRepo = NewsTestBuilder.anArticle().build();
-            when(newsRepository.save(any(News.class)))
-                    .thenReturn(expectedFromRepo);
-
-            NewsResponse expected = NewsTestBuilder.anArticle().buildResponse();
-            when(newsMapper.toResponse(same(expectedFromRepo)))
-                    .thenReturn(expected);
-
-            LocalDateTime timeBeforeTest = LocalDateTime.now();
-
-            // when
-            NewsResponse actual = newsServiceImpl.createWithAssignedId(
-                    newsRequestToCreate,
-                    expectedAssignedId,
-                    expectedAuthorId,
-                    expectedUsername);
-
-            // then
-            verify(newsRepository).save(newsCaptor.capture());
-            News newsCaptured = newsCaptor.getValue();
-
-            assertThat(newsCaptured.getCreationTime()).isAfter(timeBeforeTest);
-            assertThat(newsCaptured.getUpdateTime()).isAfter(timeBeforeTest);
-
-            assertThat(newsCaptured.getId()).isEqualTo(expectedAssignedId);
-            assertThat(newsCaptured.getUsername()).isEqualTo(expectedUsername);
-            assertThat(newsCaptured.getAuthorId()).isEqualTo(expectedAuthorId);
-            assertThat(newsCaptured.getText()).isEqualTo(newsRequestToCreate.getText());
-            assertThat(newsCaptured.getTitle()).isEqualTo(newsRequestToCreate.getTitle());
-
-            assertThat(actual).isEqualTo(expected);
-        }
-    }
-
-    @Nested
-    @DisplayName("replace (UUID, NewsRequest, Collection<GrantedAuthority>, UUID, String)")
-    class replace {
-
-        @Test
-        void shouldNotReplace_ifSubscriberAuthority() {
+        void shouldReturnEmptyOptional_whenNotFound_onUpdate() {
 
             // given
             NewsTestBuilder anArticle = NewsTestBuilder.anArticle();
 
             NewsRequest newsRequest = anArticle.buildRequest();
             UUID idOfNewsToReplace = anArticle.getId();
-
-            UUID idOfAuthenticatedUser = anArticle.getAuthorId();
-            String username = anArticle.getUsername();
-            Collection<GrantedAuthority> authoritiesOfAuthenticatedUser = List.of(new SimpleGrantedAuthority(RoleConstants.SUBSCRIBER));
-
-            // when, then
-            assertThatThrownBy(() -> newsServiceImpl.replace(
-                    idOfNewsToReplace,
-                    newsRequest,
-                    authoritiesOfAuthenticatedUser,
-                    idOfAuthenticatedUser,
-                    username)).isInstanceOf(AccessDeniedException.class);
-        }
-
-        @Test
-        void shouldReplace_whenNotPresentInRepository_ifAdminAuthority() {
-
-            // given
-            NewsTestBuilder anArticle = NewsTestBuilder.anArticle();
-
-            NewsRequest newsRequest = anArticle.buildRequest();
-            UUID idOfNewsToReplace = anArticle.getId();
-
-            NewsResponse newsResponse = anArticle.buildResponse();
-
-            UUID idOfAuthenticatedUser = anArticle.getAuthorId();
-            String username = anArticle.getUsername();
-            Collection<GrantedAuthority> authoritiesOfAuthenticatedUser = List.of(new SimpleGrantedAuthority(RoleConstants.ADMIN));
 
             when(newsRepository.findById(idOfNewsToReplace))
                     .thenReturn(Optional.empty());
 
-            doReturn(newsResponse).when(newsServiceImpl).createWithAssignedId(
-                    newsRequest,
-                    idOfNewsToReplace,
-                    idOfAuthenticatedUser,
-                    username);
-
             // when
-            ResponseEntity<NewsResponse> actual = newsServiceImpl.replace(
-                    idOfNewsToReplace,
-                    newsRequest,
-                    authoritiesOfAuthenticatedUser,
-                    idOfAuthenticatedUser,
-                    username);
+            Optional<NewsResponse> updatedOptional = newsServiceImpl.update(idOfNewsToReplace, newsRequest);
 
             // then
-            assertThat(actual.getStatusCode().isSameCodeAs(HttpStatus.CREATED)).isTrue();
-            assertThat(actual.getBody()).isSameAs(newsResponse);
+            assertThat(updatedOptional).isEmpty();
         }
 
         @Test
-        void shouldReplace_whenNotPresentInRepository_ifJournalistAuthority() {
+        void shouldUpdate() {
 
             // given
-            NewsTestBuilder anArticle = NewsTestBuilder.anArticle();
+            NewsRequest newsRequest = NewsTestBuilder.anArticle()
+                    .withTitle("some new title cvxvgf")
+                    .withText("some new text vcvxcfgx")
+                    .buildRequest();
 
-            NewsRequest newsRequest = anArticle.buildRequest();
-            UUID idOfNewsToReplace = anArticle.getId();
+            UUID idOfNewsToReplace = NewsTestBuilder.anArticle().getId();
 
-            NewsResponse newsResponse = anArticle.buildResponse();
+            News newsFromFind = NewsTestBuilder.anArticle().build();
+            NewsResponse newsResponse = NewsTestBuilder.anArticle().buildResponse();
 
-            UUID idOfAuthenticatedUser = anArticle.getAuthorId();
-            String username = anArticle.getUsername();
-            Collection<GrantedAuthority> authoritiesOfAuthenticatedUser = List.of(new SimpleGrantedAuthority(RoleConstants.JOURNALIST));
-
-            when(newsRepository.findById(idOfNewsToReplace))
-                    .thenReturn(Optional.empty());
-
-            doReturn(newsResponse).when(newsServiceImpl).createWithAssignedId(
-                    newsRequest,
-                    idOfNewsToReplace,
-                    idOfAuthenticatedUser,
-                    username);
-
-            // when
-            ResponseEntity<NewsResponse> actual = newsServiceImpl.replace(
-                    idOfNewsToReplace,
-                    newsRequest,
-                    authoritiesOfAuthenticatedUser,
-                    idOfAuthenticatedUser,
-                    username);
-
-            // then
-            assertThat(actual.getStatusCode().isSameCodeAs(HttpStatus.CREATED)).isTrue();
-            assertThat(actual.getBody()).isSameAs(newsResponse);
-        }
-
-        @Test
-        void shouldReplace_whenPresentInRepository_ifAdminAuthority_and_adminIdIsNotAuthorId() {
-
-            // given
-            NewsTestBuilder anArticle = NewsTestBuilder.anArticle();
-
-            NewsRequest newsRequest = anArticle.buildRequest();
-            UUID idOfNewsToReplace = anArticle.getId();
-
-            UUID idOfAuthor = UUID.fromString("7dc65e29-fa77-4be7-89db-a8a49d930266");
-            News expectedNews = anArticle
-                    .withAuthorId(idOfAuthor)
-                    .build();
-
-            News newsFromRepo = anArticle
-                    .build();
-            NewsResponse expected = anArticle
-                    .buildResponse();
-
-            UUID idOfAdmin = anArticle.getAuthorId();
-            String username = anArticle.getUsername();
-            Collection<GrantedAuthority> authoritiesOfAuthenticatedUser = List.of(new SimpleGrantedAuthority(RoleConstants.ADMIN));
+            News newsFromSave = NewsTestBuilder.anArticle().build();
 
             when(newsRepository.findById(idOfNewsToReplace))
-                    .thenReturn(Optional.of(expectedNews));
+                    .thenReturn(Optional.of(newsFromFind));
             when(newsRepository.save(any(News.class)))
-                    .thenReturn(newsFromRepo);
-            when(newsMapper.toResponse(same(newsFromRepo)))
-                    .thenReturn(expected);
+                    .thenReturn(newsFromSave);
+            when(newsMapper.toResponse(newsFromSave))
+                    .thenReturn(newsResponse);
 
             LocalDateTime timeBeforeTest = LocalDateTime.now();
 
             // when
-            ResponseEntity<NewsResponse> actual = newsServiceImpl.replace(
-                    idOfNewsToReplace,
-                    newsRequest,
-                    authoritiesOfAuthenticatedUser,
-                    idOfAdmin,
-                    username);
+            Optional<NewsResponse> updatedOptional = newsServiceImpl.update(idOfNewsToReplace, newsRequest);
 
             // then
             verify(newsRepository).save(newsCaptor.capture());
-            News newsCaptured = newsCaptor.getValue();
+            News captured = newsCaptor.getValue();
 
-            assertThat(newsCaptured.getUpdateTime()).isAfter(timeBeforeTest);
-            assertThat(newsCaptured.getTitle()).isSameAs(newsRequest.getTitle());
-            assertThat(newsCaptured.getText()).isSameAs(newsRequest.getText());
+            assertThat(timeBeforeTest).isBefore(captured.getUpdateTime());
+            assertThat(captured.getId()).isNotNull();
+            assertThat(captured.getTitle()).isEqualTo(newsRequest.getTitle());
+            assertThat(captured.getText()).isEqualTo(newsRequest.getText());
 
-            assertThat(newsCaptured.getId()).isSameAs(expectedNews.getId());
-            assertThat(newsCaptured.getAuthorId()).isSameAs(expectedNews.getAuthorId());
-            assertThat(newsCaptured.getUsername()).isSameAs(expectedNews.getUsername());
-            assertThat(newsCaptured.getCreationTime()).isSameAs(expectedNews.getCreationTime());
-
-            assertThat(actual.getStatusCode().isSameCodeAs(HttpStatus.OK)).isTrue();
-            assertThat(actual.getBody()).isSameAs(expected);
+            assertThat(updatedOptional).isPresent();
+            assertThat(updatedOptional.get()).isSameAs(newsResponse);
         }
 
-        @Test
-        void shouldReplace_whenPresentInRepository_ifAdminAuthority_and_adminIdIsAuthorId() {
-
-            // given
-            NewsTestBuilder anArticle = NewsTestBuilder.anArticle();
-
-            NewsRequest newsRequest = anArticle.buildRequest();
-            UUID idOfNewsToReplace = anArticle.getId();
-
-            UUID idOfAuthor = UUID.fromString("7dc65e29-fa77-4be7-89db-a8a49d930266");
-            News expectedNews = anArticle
-                    .withAuthorId(idOfAuthor)
-                    .build();
-
-            News newsFromRepo = anArticle
-                    .build();
-            NewsResponse expected = anArticle
-                    .buildResponse();
-
-            UUID idOfAdmin = idOfAuthor;
-            String username = anArticle.getUsername();
-            Collection<GrantedAuthority> authoritiesOfAuthenticatedUser = List.of(new SimpleGrantedAuthority(RoleConstants.ADMIN));
-
-            when(newsRepository.findById(idOfNewsToReplace))
-                    .thenReturn(Optional.of(expectedNews));
-            when(newsRepository.save(any(News.class)))
-                    .thenReturn(newsFromRepo);
-            when(newsMapper.toResponse(same(newsFromRepo)))
-                    .thenReturn(expected);
-
-            LocalDateTime timeBeforeTest = LocalDateTime.now();
-
-            // when
-            ResponseEntity<NewsResponse> actual = newsServiceImpl.replace(
-                    idOfNewsToReplace,
-                    newsRequest,
-                    authoritiesOfAuthenticatedUser,
-                    idOfAdmin,
-                    username);
-
-            // then
-            verify(newsRepository).save(newsCaptor.capture());
-            News newsCaptured = newsCaptor.getValue();
-
-            assertThat(newsCaptured.getUpdateTime()).isAfter(timeBeforeTest);
-            assertThat(newsCaptured.getTitle()).isSameAs(newsRequest.getTitle());
-            assertThat(newsCaptured.getText()).isSameAs(newsRequest.getText());
-
-            assertThat(newsCaptured.getId()).isSameAs(expectedNews.getId());
-            assertThat(newsCaptured.getAuthorId()).isSameAs(expectedNews.getAuthorId());
-            assertThat(newsCaptured.getUsername()).isSameAs(expectedNews.getUsername());
-            assertThat(newsCaptured.getCreationTime()).isSameAs(expectedNews.getCreationTime());
-
-            assertThat(actual.getStatusCode().isSameCodeAs(HttpStatus.OK)).isTrue();
-            assertThat(actual.getBody()).isSameAs(expected);
-        }
-
-        @Test
-        void shouldReplace_whenPresentInRepository_ifJournalistAuthority_and_journalistIdIsAuthorId() {
-
-            // given
-            NewsTestBuilder anArticle = NewsTestBuilder.anArticle();
-
-            NewsRequest newsRequest = anArticle.buildRequest();
-            UUID idOfNewsToReplace = anArticle.getId();
-
-            UUID idOfAuthor = UUID.fromString("7dc65e29-fa77-4be7-89db-a8a49d930266");
-            News expectedNews = anArticle
-                    .withAuthorId(idOfAuthor)
-                    .build();
-
-            News newsFromRepo = anArticle
-                    .build();
-            NewsResponse expected = anArticle
-                    .buildResponse();
-
-            UUID idOfJournalist = idOfAuthor;
-            String username = anArticle.getUsername();
-            Collection<GrantedAuthority> authoritiesOfAuthenticatedUser = List.of(new SimpleGrantedAuthority(RoleConstants.JOURNALIST));
-
-            when(newsRepository.findById(idOfNewsToReplace))
-                    .thenReturn(Optional.of(expectedNews));
-            when(newsRepository.save(any(News.class)))
-                    .thenReturn(newsFromRepo);
-            when(newsMapper.toResponse(same(newsFromRepo)))
-                    .thenReturn(expected);
-
-            LocalDateTime timeBeforeTest = LocalDateTime.now();
-
-            // when
-            ResponseEntity<NewsResponse> actual = newsServiceImpl.replace(
-                    idOfNewsToReplace,
-                    newsRequest,
-                    authoritiesOfAuthenticatedUser,
-                    idOfJournalist,
-                    username);
-
-            // then
-            verify(newsRepository).save(newsCaptor.capture());
-            News newsCaptured = newsCaptor.getValue();
-
-            assertThat(newsCaptured.getUpdateTime()).isAfter(timeBeforeTest);
-            assertThat(newsCaptured.getTitle()).isSameAs(newsRequest.getTitle());
-            assertThat(newsCaptured.getText()).isSameAs(newsRequest.getText());
-
-            assertThat(newsCaptured.getId()).isSameAs(expectedNews.getId());
-            assertThat(newsCaptured.getAuthorId()).isSameAs(expectedNews.getAuthorId());
-            assertThat(newsCaptured.getUsername()).isSameAs(expectedNews.getUsername());
-            assertThat(newsCaptured.getCreationTime()).isSameAs(expectedNews.getCreationTime());
-
-            assertThat(actual.getStatusCode().isSameCodeAs(HttpStatus.OK)).isTrue();
-            assertThat(actual.getBody()).isSameAs(expected);
-        }
-
-        @Test
-        void shouldNotReplace_whenPresentInRepository_ifJournalistAuthority_and_journalistIdIsNotAuthorId() {
-
-            // given
-            NewsTestBuilder anArticle = NewsTestBuilder.anArticle();
-
-            NewsRequest newsRequest = anArticle.buildRequest();
-            UUID idOfNewsToReplace = anArticle.getId();
-
-            UUID idOfAuthor = UUID.fromString("7dc65e29-fa77-4be7-89db-a8a49d930266");
-            News expectedNews = anArticle
-                    .withAuthorId(idOfAuthor)
-                    .build();
-
-            UUID idOfJournalist = anArticle.getAuthorId();
-            String username = anArticle.getUsername();
-            Collection<GrantedAuthority> authoritiesOfAuthenticatedUser = List.of(new SimpleGrantedAuthority(RoleConstants.JOURNALIST));
-
-            when(newsRepository.findById(idOfNewsToReplace))
-                    .thenReturn(Optional.of(expectedNews));
-
-
-            // when, then
-            assertThatThrownBy(() -> newsServiceImpl.replace(
-                    idOfNewsToReplace,
-                    newsRequest,
-                    authoritiesOfAuthenticatedUser,
-                    idOfJournalist,
-                    username)).isInstanceOf(AccessDeniedException.class);
-        }
     }
 }

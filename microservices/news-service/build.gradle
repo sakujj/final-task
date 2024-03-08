@@ -13,6 +13,8 @@ jacocoTestReport {
 dependencies {
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
+    implementation "io.github.sakujj:aop-cache-spring-boot-starter:${customCacheStarterVersion}"
+
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-security")
 
@@ -23,10 +25,12 @@ dependencies {
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openapiVersion}"
 
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     implementation 'org.liquibase:liquibase-core'
 
-
     runtimeOnly 'org.postgresql:postgresql'
+    testImplementation 'org.postgresql:postgresql'
+    testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-stub-runner'
 
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

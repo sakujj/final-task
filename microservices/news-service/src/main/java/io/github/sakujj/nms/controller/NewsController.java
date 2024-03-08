@@ -1,19 +1,23 @@
 package io.github.sakujj.nms.controller;
 
-import io.github.sakujj.nms.NewsServiceApplication;
 import io.github.sakujj.nms.constant.RoleConstants;
 import io.github.sakujj.nms.dto.NewsRequest;
 import io.github.sakujj.nms.dto.NewsResponse;
+import io.github.sakujj.nms.external.dto.CommentResponse;
+import io.github.sakujj.nms.external.dto.CommentSaveRequest;
+import io.github.sakujj.nms.external.dto.CommentUpdateRequest;
+import io.github.sakujj.nms.httpclient.CommentsClient;
 import io.github.sakujj.nms.service.NewsService;
+import io.github.sakujj.nms.util.AuthUtils;
 import io.github.sakujj.nms.util.KeycloakAuthUtils;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.Collection;
@@ -61,6 +64,76 @@ public class NewsController implements NewsControllerSpec {
 
     private final NewsService newsService;
 
+    private final CommentsClient commentsClient;
+
+    @GetMapping("/{newsId}/comments")
+    public ResponseEntity<Page<CommentResponse>> findAllComments(
+            @PathVariable("newsId") UUID newsId,
+
+            @RequestParam(value = PAGE_NUMBER_PARAM_NAME, defaultValue = PAGE_NUMBER_DEFAULT_VAL)
+            Integer pageNumber,
+
+            @RequestParam(value = PAGE_SIZE_PARAM_NAME, defaultValue = PAGE_SIZE_DEFAULT_VAL)
+            Integer pageSize,
+
+            @RequestParam(required = false, value = CONTAINED_IN_USERNAME_PARAM_NAME)
+            String containedInUsername) {
+
+        return commentsClient.findAll(pageNumber, pageSize, containedInUsername, newsId);
+    }
+
+    @GetMapping("/{newsId}/comments/{commentId}")
+    public ResponseEntity<CommentResponse> findComment(
+            @PathVariable("newsId") UUID newsId,
+            @PathVariable("commentId") UUID commentId) {
+
+        ResponseEntity<CommentResponse> foundById = commentsClient.findById(commentId);
+        if (foundById.getStatusCode().is4xxClientError()) {
+            return foundById;
+        }
+
+        CommentResponse commentResponse = foundById.getBody();
+        if (commentResponse == null
+                || !commentResponse.getNewsId().equals(newsId)) {
+
+            return ResponseEntity.notFound().build();
+        }
+
+        return foundById;
+    }
+
+    @PostMapping("/{newsId}/comments")
+    public ResponseEntity<CommentResponse> createComment(
+            @PathVariable("newsId") UUID newsId,
+            @RequestBody CommentUpdateRequest commentUpdateRequest,
+            JwtAuthenticationToken idToken) {
+
+        CommentSaveRequest commentSaveRequest = new CommentSaveRequest(
+                commentUpdateRequest.getText(),
+                newsId);
+
+        return commentsClient.create(commentSaveRequest, AuthUtils.getBearerAuthHeaderValue(idToken));
+    }
+
+    @DeleteMapping("/{newsId}/comments/{commentId}")
+    public ResponseEntity<?> deleteComment(
+            @PathVariable("newsId") UUID newsId,
+            @PathVariable("commentId") UUID commentId,
+            JwtAuthenticationToken idToken) {
+
+        return commentsClient.delete(commentId, AuthUtils.getBearerAuthHeaderValue(idToken));
+    }
+
+    @PutMapping("/{newsId}/comments/{commentId}")
+    public ResponseEntity<CommentResponse> updateComment(
+            @PathVariable("newsId") UUID newsId,
+            @PathVariable("commentId") UUID commentId,
+            @RequestBody CommentUpdateRequest commentUpdateRequest,
+            JwtAuthenticationToken idToken) {
+
+        return commentsClient.update(commentUpdateRequest, commentId, AuthUtils.getBearerAuthHeaderValue(idToken));
+    }
+
     @GetMapping
     public ResponseEntity<Page<NewsResponse>> findAll(
             @Min(MIN_PAGE_NUMBER)
@@ -85,7 +158,7 @@ public class NewsController implements NewsControllerSpec {
                     pageNumber,
                     pageSize);
 
-            return ResponseEntity.ok(pageFound);
+            return getFoundPageResponseEntity(pageFound);
         }
 
         if (containedInUsername != null) {
@@ -94,7 +167,7 @@ public class NewsController implements NewsControllerSpec {
                     pageNumber,
                     pageSize);
 
-            return ResponseEntity.ok(pageFound);
+            return getFoundPageResponseEntity(pageFound);
         }
 
         if (containedInTitle != null) {
@@ -103,10 +176,18 @@ public class NewsController implements NewsControllerSpec {
                     pageNumber,
                     pageSize);
 
-            return ResponseEntity.ok(pageFound);
+            return getFoundPageResponseEntity(pageFound);
         }
 
         Page<NewsResponse> pageFound = newsService.findAll(pageNumber, pageSize);
+
+        return getFoundPageResponseEntity(pageFound);
+    }
+
+    private static <T> ResponseEntity<Page<T>> getFoundPageResponseEntity(Page<T> pageFound) {
+        if (pageFound.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
         return ResponseEntity.ok(pageFound);
     }
@@ -114,10 +195,11 @@ public class NewsController implements NewsControllerSpec {
     @GetMapping("/{id}")
     public ResponseEntity<NewsResponse> findById(@PathVariable("id") UUID id) {
 
-        NewsResponse found = newsService.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Optional<NewsResponse> newsResponseOptional = newsService.findById(id);
 
-        return ResponseEntity.ok(found);
+        return newsResponseOptional
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
@@ -127,18 +209,19 @@ public class NewsController implements NewsControllerSpec {
 
         boolean isAuthenticatedUserAdminOrJournalist = authoritiesOfAuthenticatedUser.stream()
                 .map(GrantedAuthority::getAuthority)
-                .peek(System.out::println)
                 .anyMatch(authority -> switch (authority) {
                     case RoleConstants.ADMIN, RoleConstants.JOURNALIST -> true;
                     default -> false;
                 });
 
         if (!isAuthenticatedUserAdminOrJournalist) {
+
             return ResponseEntity.noContent().build();
         }
 
         Optional<NewsResponse> newsResponseOptional = newsService.findById(newsId);
         if (newsResponseOptional.isEmpty()) {
+
             return ResponseEntity.noContent().build();
         }
 
@@ -148,10 +231,12 @@ public class NewsController implements NewsControllerSpec {
         UUID idOfAuthenticatedUser = UUID.fromString(idToken.getName());
 
         if (!isAuthenticatedUserAuthorizedToChangeNews(authoritiesOfAuthenticatedUser, idOfAuthenticatedUser, idOfNewsAuthor)) {
+
             return ResponseEntity.noContent().build();
         }
 
         newsService.deleteById(newsId);
+        commentsClient.deleteNewsId(newsId, AuthUtils.getBearerAuthHeaderValue(idToken));
 
         return ResponseEntity.noContent().build();
     }
@@ -165,6 +250,7 @@ public class NewsController implements NewsControllerSpec {
         String authenticatedUserUsername = KeycloakAuthUtils.getUsernameOfAuthenticatedUserKeycloak(idToken);
 
         NewsResponse newsResponse = newsService.create(newsRequest, authenticatedUserId, authenticatedUserUsername);
+        commentsClient.createNewsId(newsResponse.getId(), AuthUtils.getBearerAuthHeaderValue(idToken));
 
         return ResponseEntity.created(
                         ServletUriComponentsBuilder.fromCurrentRequest()
@@ -176,30 +262,45 @@ public class NewsController implements NewsControllerSpec {
 
     @PutMapping("/{id}")
     @Secured({RoleConstants.ADMIN, RoleConstants.JOURNALIST})
-    public ResponseEntity<NewsResponse> replace(@RequestBody @Valid NewsRequest newsRequest,
-                                                @PathVariable("id") UUID newsId,
-                                                JwtAuthenticationToken idToken) {
+    public ResponseEntity<NewsResponse> update(@RequestBody @Valid NewsRequest newsRequest,
+                                               @PathVariable("id") UUID newsId,
+                                               JwtAuthenticationToken idToken) {
 
-        Collection<GrantedAuthority> authoritiesOfAuthenticatedUser = idToken.getAuthorities();
-        UUID idOfAuthenticatedUser = UUID.fromString(idToken.getName());
-        String usernameOfAuthenticatedUser = KeycloakAuthUtils.getUsernameOfAuthenticatedUserKeycloak(idToken);
+        Optional<NewsResponse> newsOptional = newsService.findById(newsId);
+        if (newsOptional.isEmpty()) {
 
-        ResponseEntity<NewsResponse> replacedEntity = newsService.replace(
-                newsId,
-                newsRequest,
-                authoritiesOfAuthenticatedUser,
-                idOfAuthenticatedUser,
-                usernameOfAuthenticatedUser);
+            if (!idTokenContainsAuthority(idToken, RoleConstants.ADMIN)) {
+                throw new AccessDeniedException("You do not have authority to update the specified news");
+            }
 
-        if (HttpStatus.CREATED.isSameCodeAs(replacedEntity.getStatusCode())) {
-
-            return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequest()
-                            .build()
-                            .toUri())
-                    .body(replacedEntity.getBody());
+            return ResponseEntity.notFound().build();
         }
 
-        return replacedEntity;
+        NewsResponse newsToUpdate = newsOptional.get();
+
+        UUID idOfAuthor = newsToUpdate.getAuthorId();
+        UUID idOfAuthenticatedUser = UUID.fromString(idToken.getName());
+
+        if (!idTokenContainsAuthority(idToken, RoleConstants.ADMIN)
+                && idTokenContainsAuthority(idToken, RoleConstants.JOURNALIST)) {
+
+            if (!idOfAuthenticatedUser.equals(idOfAuthor)) {
+                throw new AccessDeniedException("You do not have authority to update the specified news");
+            }
+        }
+
+        return newsService.update(newsId, newsRequest)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private static boolean idTokenContainsAuthority(JwtAuthenticationToken idToken, String authority) {
+
+        Collection<GrantedAuthority> authoritiesOfAuthenticatedUser = idToken.getAuthorities();
+
+        return authoritiesOfAuthenticatedUser.stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(a -> a.equals(authority));
     }
 
     private static boolean isAuthenticatedUserAuthorizedToChangeNews(

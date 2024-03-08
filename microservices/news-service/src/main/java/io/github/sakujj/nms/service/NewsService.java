@@ -16,7 +16,7 @@ import java.util.UUID;
 public interface NewsService {
 
     /**
-     * The method to find news by id
+     * Method to find news by id
      * @param id
      * @return {@link Optional} with NewsResponse if news are found, or an emtpy {@link Optional}
      * otherwise
@@ -25,7 +25,7 @@ public interface NewsService {
 
 
     /**
-     * The method find the requested page with news
+     * Method to find the requested page with news
      * @param pageNumber requested page number
      * @param pageSize requested page size
      * @return requested page
@@ -34,7 +34,7 @@ public interface NewsService {
 
 
     /**
-     * The method to find the requested page of news, that have @containedInTitle in their title
+     * Method to find the requested page of news, that have @containedInTitle in their title
      * @param containedInTitle string that should be contained in a title
      * @param pageNumber requested page number
      * @param pageSize requested page size
@@ -44,7 +44,7 @@ public interface NewsService {
 
 
     /**
-     * The method to find the requested page of news, that have @containedInUsername in their author username
+     * Method to find the requested page of news, that have @containedInUsername in their author username
      * @param containedInUsername string that should be contained in an author username
      * @param pageNumber requested page number
      * @param pageSize requested page size
@@ -54,8 +54,8 @@ public interface NewsService {
 
 
     /**
-     *      * The method to find the requested page of news, that have @containedInTitle in their title
-     *      AND @containedInUsername in their author username
+     * Method to find the requested page of news, that have @containedInTitle in their title
+     * AND @containedInUsername in their author username
      * @param containedInTitle string that should be contained in a title
      * @param containedInUsername string that should be contained in an author username
      * @param pageNumber requested page number
@@ -69,7 +69,7 @@ public interface NewsService {
 
 
     /**
-     * The method to create a new news instance
+     * Method to create a new news instance
      * @param newsRequest the news request
      * @param authorId the id of the author
      * @param username the username of the author
@@ -77,40 +77,20 @@ public interface NewsService {
      */
     NewsResponse create(NewsRequest newsRequest, UUID authorId, String username);
 
-
     /**
-     * The method to create a new news instance with an assigned id
-     * @param newsRequest the news request
-     * @param assignedId the assigned id
-     * @param authorId the id of the author
-     * @param username the username of the author
-     * @return the representation of the created news instance
-     */
-    NewsResponse createWithAssignedId(NewsRequest newsRequest, UUID assignedId, UUID authorId, String username);
-
-
-    /**
-     * The method used to delete by id
+     * Method used to delete by id
      * @param id
      */
     void deleteById(UUID id);
 
 
     /**
-     * The method used to replace a news instance.
-     * <p>@authoritiesOfAuthenticatedUser, @idOfAuthenticatedUser, @usernameOfAuthenticatedUser should relate
-     * to the same user (authenticated user), that makes the request to call this method</p>
-     * @param id the id of the news instance to replace
-     * @param newsRequest the news request used to replace
-     * @param authoritiesOfAuthenticatedUser the authorities of the authenticated user
-     * @param idOfAuthenticatedUser the id of the authenticated user
-     * @param usernameOfAuthenticatedUser the username of the authenticated user
-     * @return response entity with the news response if the replacement happened.
-     * The status of the response entity may be OK, CREATED, UNAUTHORIZED, FORBIDDEN
+     * Method used to update news.
+     * @param id the id of the news instance to update
+     * @param newsRequest the news request used to take update information from
+     * @return empty {@link Optional} if news instance to update is not present, or {@link Optional} containing
+     * news response with updated information.
      */
-    ResponseEntity<NewsResponse> replace(UUID id,
-                                         NewsRequest newsRequest,
-                                         Collection<GrantedAuthority> authoritiesOfAuthenticatedUser,
-                                         UUID idOfAuthenticatedUser,
-                                         String usernameOfAuthenticatedUser);
+    Optional<NewsResponse> update(UUID id, NewsRequest newsRequest);
+
 }

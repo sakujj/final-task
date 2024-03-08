@@ -150,13 +150,13 @@ public interface NewsControllerSpec {
                     content = @Content(schema = @Schema(implementation = ApiError.class))
             )
     })
-    ResponseEntity<NewsResponse> replace(@io.swagger.v3.oas.annotations.parameters.RequestBody
+    ResponseEntity<NewsResponse> update(@io.swagger.v3.oas.annotations.parameters.RequestBody
                                          @Valid
                                          NewsRequest newsRequest,
 
-                                         @PathVariable("id") UUID newsId,
+                                        @PathVariable("id") UUID newsId,
 
-                                         @Parameter(hidden = true)
+                                        @Parameter(hidden = true)
                                          JwtAuthenticationToken idToken);
 
 }

@@ -1,5 +1,6 @@
 package io.github.sakujj.nms.exception;
 
+import feign.FeignException;
 import jakarta.validation.ConstraintViolationException;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.TypeMismatchException;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 /**
- * The class for handling exceptions received from the controller layer
+ * Global exception handler
  */
 @ControllerAdvice
 public class RestExceptionHandler {
@@ -25,7 +26,22 @@ public class RestExceptionHandler {
                 .errorMessage(runtimeException.getMessage() + " " + runtimeException.getClass())
                 .build();
 
-        runtimeException.printStackTrace();
+        return ResponseEntity
+                .status(HttpStatus.SC_BAD_REQUEST)
+                .body(apiError);
+    }
+
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<ApiError> handleFeignExcpetion(FeignException exception) {
+
+        if (exception.status() == HttpStatus.SC_NOT_FOUND) {
+            return ResponseEntity.notFound().build();
+        }
+
+        ApiError apiError = ApiError.builder()
+                .errorMessage(exception.getMessage() + " " + exception.getClass())
+                .build();
+
 
         return ResponseEntity
                 .status(HttpStatus.SC_BAD_REQUEST)

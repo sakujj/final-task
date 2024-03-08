@@ -16,8 +16,8 @@ import java.util.UUID;
 
 @With
 @Getter
-@NoArgsConstructor(staticName = "anArticle")
 @AllArgsConstructor
+@NoArgsConstructor(staticName = "anArticle")
 public class NewsTestBuilder {
 
     private UUID id = UUID.fromString("caf87159-8f25-4e5b-9eb1-39273f6016a6");

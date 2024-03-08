@@ -1,6 +1,7 @@
 package io.github.sakujj.nms.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.github.sakujj.cache.IdentifiableByUUID;
 import io.github.sakujj.nms.constant.FormatConstants;
 import io.github.sakujj.nms.documentation.OpenApiSchema;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,7 +16,7 @@ import java.util.UUID;
  */
 @Data
 @AllArgsConstructor
-public class NewsResponse {
+public class NewsResponse implements IdentifiableByUUID {
 
     @Schema(example = OpenApiSchema.Examples.NewsDTO.UUID_EXAMPLE)
     private UUID id;
@@ -39,4 +40,9 @@ public class NewsResponse {
 
     @Schema(example = OpenApiSchema.Examples.NewsDTO.AUTHOR_ID_EXAMPLE)
     private UUID authorId;
+
+    @Override
+    public UUID getUuid() {
+        return id;
+    }
 }

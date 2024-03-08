@@ -1,0 +1,55 @@
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+
+server:
+  port: 8091
+  forward-headers-strategy: NATIVE
+
+springdoc:
+  swagger-ui:
+    path: /news/swagger
+    operations-sorter: method
+  api-docs:
+    path: /news/api-docs
+
+spring:
+  application:
+    name: news-service
+  data:
+    web:
+      pageable:
+        page-parameter: page
+        size-parameter: size
+        default-page-size: 15
+        max-page-size: 250
+  datasource:
+#    url: jdbc:postgresql://127.0.0.1:5432/main_db
+    driverClassName: org.postgresql.Driver
+    username: admin
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        ddl-auto: validate
+  liquibase:
+    change-log: "classpath:db/changelog/root.yml"
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/sakujj
+
+spring.cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            loggerLevel: full
+
+logging.level:
+  io.github.sakujj.nms.httpclient: DEBUG

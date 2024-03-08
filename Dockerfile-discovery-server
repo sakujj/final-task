@@ -1,0 +1,15 @@
+FROM openjdk:17-jdk-alpine
+
+COPY gradlew settings.gradle ./
+COPY gradle/ ./gradle/
+RUN ./gradlew :wrapper
+
+COPY buildSrc/ ./buildSrc/
+RUN ./gradlew :buildSrc:extractPluginRequests
+RUN ./gradlew :buildSrc:generatePluginAdapters
+
+COPY microservices/eureka-server/ ./microservices/eureka-server/
+
+RUN ./gradlew :microservices:eureka-server:classes
+
+CMD ["./gradlew", ":microservices:eureka-server:bootRun"]

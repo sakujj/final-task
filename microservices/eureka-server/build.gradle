@@ -2,6 +2,10 @@ plugins {
     id 'build-conventions'
 }
 
+springBoot {
+    mainClass = "io.github.sakujj.nms.EurekaDiscoveryServer"
+}
+
 dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
 }

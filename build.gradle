@@ -1,0 +1,42 @@
+import java.util.stream.Collectors
+
+ext {
+    customCacheStarter = project(":aop-cache-spring-boot-starter").name
+    microservices = [
+            ":microservices:api-gateway",
+            ":microservices:comments-service",
+            ":microservices:eureka-server",
+            ":microservices:news-service"
+    ]
+}
+
+tasks.register('prepareForDocker') {
+
+    def tasksToDependOnOrdered = new ArrayList<>()
+
+
+    tasksToDependOnOrdered.addAll(microservices
+            .stream()
+            .map(name -> "${name}:clean")
+            .collect(Collectors.toList()))
+
+    tasksToDependOnOrdered.add("${customCacheStarter}:clean")
+
+    tasksToDependOnOrdered.add("${customCacheStarter}:publishToMavenLocal")
+
+    tasksToDependOnOrdered.addAll(microservices
+            .stream()
+            .map(name -> "${name}:bootJar")
+            .collect(Collectors.toList()))
+
+
+    dependsOn(ordered(tasksToDependOnOrdered))
+}
+
+def ordered(List<String> dependencyPaths) {
+    def dependencies = dependencyPaths.collect {tasks.getByPath(it)}
+    for (int i = 0; i < dependencies.size() - 1; i++) {
+        dependencies[i + 1].mustRunAfter(dependencies[i])
+    }
+    return dependencies
+}

@@ -4,6 +4,7 @@ plugins {
 }
 
 publishing {
+
     publications {
         customCache(MavenPublication) {
             groupId "${group}"

@@ -6,9 +6,18 @@
 Это необходимо для того, чтобы работал Authorization Code Flow (OAuth2), 
 а именно чтобы браузер мог быть перенаправлен на url с доменом keykloak.</li>
 
-<li> Перейти в директорию <code>./docker-config</code> запустить docker compose: <code>docker compose up</code> </li>
+<li> Запустить следущие команды находясь в корневой папке: 
+    <ol style="list-style-type:lower-greek">
+        <li>
+            <code>./gradlew :prepareForDocker</code> (Для Linux, для Windows аналогично используя gradlew.bat)
+        </li>
+        <li>
+            <code>docker compose -f ./docker-config/docker-compose.yaml up</code>
+        </li>
+    </ol>
+</li>
 
-<li> Следует ждать пока создадутся докер-образы, и пока запустятся все необходимые контейнеры. Ожидание 
+<li> Следует ждать пока запустятся все необходимые контейнеры. Ожидание 
 запуска контейнеров может составлять около минуты. Контейнер api-gateway может выбрасывать исключения и перезапускаться
 несколько раз, пока контейнер keycloak не перейдет в полностью рабочее состояние.</li>
 </ol>

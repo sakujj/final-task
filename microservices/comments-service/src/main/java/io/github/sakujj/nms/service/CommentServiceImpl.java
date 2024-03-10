@@ -4,6 +4,7 @@ import io.github.sakujj.cache.aop.CacheableCreate;
 import io.github.sakujj.cache.aop.CacheableDeleteByUUID;
 import io.github.sakujj.cache.aop.CacheableFindByUUID;
 import io.github.sakujj.cache.aop.CacheableUpdateByUUID;
+import io.github.sakujj.nms.config.CachingConfig;
 import io.github.sakujj.nms.dto.CommentResponse;
 import io.github.sakujj.nms.dto.CommentSaveRequest;
 import io.github.sakujj.nms.dto.CommentUpdateRequest;
@@ -11,6 +12,10 @@ import io.github.sakujj.nms.entity.Comment;
 import io.github.sakujj.nms.mapper.CommentMapper;
 import io.github.sakujj.nms.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +31,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@CacheConfig(cacheNames = CachingConfig.COMMENTS_CACHE_NAME)
 public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
@@ -33,6 +39,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @CacheableFindByUUID
+    @Cacheable(unless = "#result == null")
     public Optional<CommentResponse> findById(UUID id) {
         return commentRepository
                 .findById(id)
@@ -85,8 +92,9 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @CacheableCreate
     @Transactional
+    @CacheableCreate
+    @CachePut(key = "#result.getId()")
     public CommentResponse create(CommentSaveRequest commentSaveRequest, UUID authorId, String username) {
 
         Comment commentToSave = commentMapper.fromRequest(commentSaveRequest);
@@ -109,6 +117,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @CacheEvict
     @Transactional
     @CacheableDeleteByUUID
     public void deleteById(UUID id) {
@@ -117,6 +126,7 @@ public class CommentServiceImpl implements CommentService {
 
 
     @Override
+    @CachePut(key = "#id")
     @CacheableUpdateByUUID
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Optional<CommentResponse> update(UUID id, CommentUpdateRequest commentUpdateRequest) {

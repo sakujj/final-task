@@ -1,17 +1,5 @@
 FROM openjdk:17-jdk-alpine
 
-COPY gradlew settings.gradle ./
-COPY gradle/ ./gradle/
-RUN ./gradlew :wrapper
-
-COPY buildSrc/ ./buildSrc/
-RUN ./gradlew :buildSrc:extractPluginRequests
-RUN ./gradlew :buildSrc:generatePluginAdapters
-
-COPY aop-cache-spring-boot-starter/ ./aop-cache-spring-boot-starter/
-COPY microservices/news-service/ ./microservices/news-service/
-
-RUN ./gradlew :aop-cache-spring-boot-starter:publishToMavenLocal
-RUN ./gradlew :microservices:news-service:classes
-
-CMD ["./gradlew", ":microservices:news-service:bootRun"]
+ARG JAR_FILE=microservices/news-service/build/libs/news-service-1.0.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar /app.jar"]

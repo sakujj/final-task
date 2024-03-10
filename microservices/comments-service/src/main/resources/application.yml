@@ -20,6 +20,14 @@ spring.liquibase:
   change-log: "classpath:db/changelog/root.yml"
 
 spring.data:
+  redis:
+    password: password
+    host: localhost
+    port: 6379
+    jedis:
+      pool:
+        enabled: true
+
   web:
     pageable:
       page-parameter: page
@@ -46,3 +54,9 @@ spring.security:
     resourceserver:
       jwt:
         issuer-uri: http://localhost:8080/realms/sakujj
+
+logging:
+  level:
+    org:
+      springframework:
+        cache: TRACE

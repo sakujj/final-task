@@ -10,3 +10,7 @@ spring:
           issuer-uri: http://keycloak:8080/realms/sakujj
   datasource:
     url: jdbc:postgresql://postgres_news:5432/main_db
+
+spring.data:
+  redis:
+    host: redis

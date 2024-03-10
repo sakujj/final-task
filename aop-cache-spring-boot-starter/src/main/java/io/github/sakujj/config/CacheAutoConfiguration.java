@@ -10,11 +10,13 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 
 @AutoConfiguration
 @EnableConfigurationProperties(value = CacheProperties.class)
 @ConditionalOnProperty(name = "sakujj.cache.isEnabled", matchIfMissing = true)
+@ConditionalOnMissingBean(value = CacheManager.class)
 public class CacheAutoConfiguration {
 
     private static final String DEFAULT_CACHE_TYPE = "LRU";

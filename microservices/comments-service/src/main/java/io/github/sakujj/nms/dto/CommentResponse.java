@@ -5,11 +5,13 @@ import io.github.sakujj.nms.entity.Comment;
 import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class CommentResponse implements IdentifiableByUUID {
 

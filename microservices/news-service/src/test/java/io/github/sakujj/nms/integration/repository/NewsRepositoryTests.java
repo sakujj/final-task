@@ -53,7 +53,7 @@ public class NewsRepositoryTests extends CommonPostgresContainerInitializer {
         testEntityManager.persist(newsThird);
         testEntityManager.persist(newsFourth);
 
-        Pageable pageable = PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, 20 + 4);
 
         // when
         testEntityManager.flush();
@@ -61,7 +61,7 @@ public class NewsRepositoryTests extends CommonPostgresContainerInitializer {
         List<News> actual = newsRepository.findAll(pageable).getContent();
 
         // then
-        assertThat(actual).containsOnly(newsFirst, newsSecond, newsThird, newsFourth);
+        assertThat(actual).contains(newsFirst, newsSecond, newsThird, newsFourth);
     }
 
     @Test

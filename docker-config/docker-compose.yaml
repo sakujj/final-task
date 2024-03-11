@@ -14,7 +14,7 @@ services:
     - postgres_news
     - api-gateway
     - eureka
-    restart: always
+    restart: unless-stopped
     build:
       context: ../
       dockerfile: Dockerfile-news-service
@@ -28,7 +28,7 @@ services:
       - postgres_comments
       - api-gateway
       - eureka
-    restart: always
+    restart: unless-stopped
     build:
       context: ../
       dockerfile: Dockerfile-comments-service
@@ -43,7 +43,7 @@ services:
     depends_on:
     - keycloak
     - eureka
-    restart: always
+    restart: unless-stopped
     build:
       context: ../
       dockerfile: Dockerfile-api-gateway
@@ -55,7 +55,7 @@ services:
   eureka:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-    restart: always
+    restart: unless-stopped
     build:
       context: ../
       dockerfile: Dockerfile-discovery-server
@@ -100,7 +100,7 @@ services:
   keycloak:
     depends_on:
       - postgres_keycloak
-    restart: always
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile-keycloak

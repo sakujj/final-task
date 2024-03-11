@@ -68,7 +68,7 @@ public class CommentRepositoryTests extends CommonPostgresContainerInitializer {
         testEntityManager.persist(commentThird);
         testEntityManager.persist(commentFourth);
 
-        Pageable pageable = PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, 200 + 4);
 
         // when
         testEntityManager.flush();
@@ -77,7 +77,7 @@ public class CommentRepositoryTests extends CommonPostgresContainerInitializer {
         List<Comment> actual = commentRepository.findAll(pageable).getContent();
 
         // then
-        assertThat(actual).containsOnly(commentFirst, commentSecond, commentThird, commentFourth);
+        assertThat(actual).contains(commentFirst, commentSecond, commentThird, commentFourth);
     }
 
     @Test

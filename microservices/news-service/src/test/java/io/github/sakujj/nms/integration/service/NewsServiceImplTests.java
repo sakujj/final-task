@@ -1,5 +1,6 @@
 package io.github.sakujj.nms.integration.service;
 
+import io.github.sakujj.nms.config.CachingConfig;
 import io.github.sakujj.nms.dto.NewsRequest;
 import io.github.sakujj.nms.entity.News;
 import io.github.sakujj.nms.integration.testcontainer.ExclusivePostgresContainerInitializer;
@@ -17,9 +18,12 @@ import org.mockito.stubbing.Answer;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 

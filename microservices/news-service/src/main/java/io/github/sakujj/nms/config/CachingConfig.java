@@ -6,6 +6,7 @@ import io.github.sakujj.nms.dto.NewsResponse;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
@@ -15,6 +16,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.util.Map;
 
+@Profile({"!test"})
 @EnableCaching
 @Configuration(proxyBeanMethods = false)
 public class CachingConfig {
@@ -24,8 +26,7 @@ public class CachingConfig {
     @Bean
     RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory, ObjectMapper objectMapper) {
 
-        Jackson2JsonRedisSerializer<NewsResponse> serializer = new Jackson2JsonRedisSerializer<>(objectMapper,
-                NewsResponse.class);
+        var serializer = new Jackson2JsonRedisSerializer<>(objectMapper, NewsResponse.class);
 
         RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .disableCachingNullValues()

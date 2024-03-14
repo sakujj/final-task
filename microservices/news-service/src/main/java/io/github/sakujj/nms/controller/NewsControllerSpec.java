@@ -47,11 +47,7 @@ public interface NewsControllerSpec {
 
             @Min(MIN_PAGE_SIZE)
             @Max(MAX_PAGE_SIZE)
-            Integer pageSize,
-
-            String containedInUsername,
-
-            String containedInTitle);
+            Integer pageSize);
 
 
     @Operation(responses = {
@@ -87,7 +83,7 @@ public interface NewsControllerSpec {
                     content = @Content(schema = @Schema(implementation = ApiError.class))
             )
     })
-    ResponseEntity<?> delete(@PathVariable("id") UUID newsId,
+    ResponseEntity<Void> delete(@PathVariable("id") UUID newsId,
 
                              @Parameter(hidden = true)
                              JwtAuthenticationToken idToken);

@@ -15,7 +15,7 @@ public interface CommentsControllerSpec {
     int MAX_PAGE_SIZE = 250;
 
 
-    ResponseEntity<?> deleteNewsId(@PathVariable("id") UUID commentId, JwtAuthenticationToken idToken);
+    ResponseEntity<Void> deleteNewsId(@PathVariable("id") UUID commentId, JwtAuthenticationToken idToken);
 
-    ResponseEntity<?> createNewsId(@RequestBody UUID newsId, JwtAuthenticationToken idToken);
+    ResponseEntity<Void> createNewsId(@RequestBody UUID newsId, JwtAuthenticationToken idToken);
 }

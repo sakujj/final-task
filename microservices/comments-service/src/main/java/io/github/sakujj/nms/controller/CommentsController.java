@@ -38,11 +38,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static io.github.sakujj.nms.CommentsServiceApplication.COMMENTS_CONTROLLER_URI;
-
-///**
-// * Controller for Comment-microservice.
-// * Has dedicated OpenAPI specification at {@link CommentControllerSpec}
-// */
+/**
+ * Controller for Comment-microservice.
+ * Has dedicated OpenAPI specification at {@link CommentsControllerSpec}
+*/
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -64,8 +63,8 @@ public class CommentsController implements CommentsControllerSpec {
 
     private final NewsIdService newsIdService;
 
-    @GetMapping
-    public ResponseEntity<Page<CommentResponse>> findAll(
+    @GetMapping(params = {CONTAINED_IN_USERNAME_PARAM_NAME, NEWS_ID_PARAM_NAME})
+    public ResponseEntity<Page<CommentResponse>> findAllWithContainedInUsernameAndNewsIdParam(
             @Min(MIN_PAGE_NUMBER)
             @RequestParam(value = PAGE_NUMBER_PARAM_NAME, defaultValue = PAGE_NUMBER_DEFAULT_VAL)
             Integer pageNumber,
@@ -75,39 +74,75 @@ public class CommentsController implements CommentsControllerSpec {
             @RequestParam(value = PAGE_SIZE_PARAM_NAME, defaultValue = PAGE_SIZE_DEFAULT_VAL)
             Integer pageSize,
 
-            @RequestParam(required = false, value = CONTAINED_IN_USERNAME_PARAM_NAME)
+            @RequestParam(value = CONTAINED_IN_USERNAME_PARAM_NAME)
             String containedInUsername,
 
-            @RequestParam(required = false, value = NEWS_ID_PARAM_NAME)
+            @RequestParam(value = NEWS_ID_PARAM_NAME)
             UUID newsId) {
 
-        if (newsId != null && containedInUsername != null) {
-            Page<CommentResponse> pageFound = commentService.findByNewsIdAndUsernameContaining(
-                    newsId,
-                    containedInUsername,
-                    pageNumber,
-                    pageSize);
+        Page<CommentResponse> pageFound = commentService.findByNewsIdAndUsernameContaining(
+                newsId,
+                containedInUsername,
+                pageNumber,
+                pageSize);
 
-            return getFoundPageResponseEntity(pageFound);
-        }
+        return getFoundPageResponseEntity(pageFound);
+    }
 
-        if (newsId != null) {
+    @GetMapping(params = {"!" + CONTAINED_IN_USERNAME_PARAM_NAME, NEWS_ID_PARAM_NAME})
+    public ResponseEntity<Page<CommentResponse>> findAllWithNewsIdParam(
+            @Min(MIN_PAGE_NUMBER)
+            @RequestParam(value = PAGE_NUMBER_PARAM_NAME, defaultValue = PAGE_NUMBER_DEFAULT_VAL)
+            Integer pageNumber,
+
+            @Min(MIN_PAGE_SIZE)
+            @Max(MAX_PAGE_SIZE)
+            @RequestParam(value = PAGE_SIZE_PARAM_NAME, defaultValue = PAGE_SIZE_DEFAULT_VAL)
+            Integer pageSize,
+
+            @RequestParam(value = NEWS_ID_PARAM_NAME)
+            UUID newsId) {
+
             Page<CommentResponse> pageFound = commentService.findByNewsId(
                     newsId,
                     pageNumber,
                     pageSize);
 
             return getFoundPageResponseEntity(pageFound);
-        }
+    }
 
-        if (containedInUsername != null) {
-            Page<CommentResponse> pageFound = commentService.findByUsernameContaining(
-                    containedInUsername,
-                    pageNumber,
-                    pageSize);
+    @GetMapping(params = {CONTAINED_IN_USERNAME_PARAM_NAME, "!" + NEWS_ID_PARAM_NAME})
+    public ResponseEntity<Page<CommentResponse>> findAllWithContainedInUsername(
+            @Min(MIN_PAGE_NUMBER)
+            @RequestParam(value = PAGE_NUMBER_PARAM_NAME, defaultValue = PAGE_NUMBER_DEFAULT_VAL)
+            Integer pageNumber,
 
-            return getFoundPageResponseEntity(pageFound);
-        }
+            @Min(MIN_PAGE_SIZE)
+            @Max(MAX_PAGE_SIZE)
+            @RequestParam(value = PAGE_SIZE_PARAM_NAME, defaultValue = PAGE_SIZE_DEFAULT_VAL)
+            Integer pageSize,
+
+            @RequestParam(value = CONTAINED_IN_USERNAME_PARAM_NAME)
+            String containedInUsername) {
+
+        Page<CommentResponse> pageFound = commentService.findByUsernameContaining(
+                containedInUsername,
+                pageNumber,
+                pageSize);
+
+        return getFoundPageResponseEntity(pageFound);
+    }
+
+    @GetMapping(params = {"!" + CONTAINED_IN_USERNAME_PARAM_NAME, "!" + NEWS_ID_PARAM_NAME})
+    public ResponseEntity<Page<CommentResponse>> findAll(
+            @Min(MIN_PAGE_NUMBER)
+            @RequestParam(value = PAGE_NUMBER_PARAM_NAME, defaultValue = PAGE_NUMBER_DEFAULT_VAL)
+            Integer pageNumber,
+
+            @Min(MIN_PAGE_SIZE)
+            @Max(MAX_PAGE_SIZE)
+            @RequestParam(value = PAGE_SIZE_PARAM_NAME, defaultValue = PAGE_SIZE_DEFAULT_VAL)
+            Integer pageSize) {
 
         Page<CommentResponse> pageFound = commentService.findAll(pageNumber, pageSize);
 
@@ -132,7 +167,7 @@ public class CommentsController implements CommentsControllerSpec {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable("id") UUID commentId, JwtAuthenticationToken idToken) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID commentId, JwtAuthenticationToken idToken) {
 
         Collection<GrantedAuthority> authoritiesOfAuthenticatedUser = idToken.getAuthorities();
 
@@ -223,7 +258,7 @@ public class CommentsController implements CommentsControllerSpec {
     }
 
     @DeleteMapping("/news-ids/{id}")
-    public ResponseEntity<?> deleteNewsId(@PathVariable("id") UUID newsId, JwtAuthenticationToken idToken) {
+    public ResponseEntity<Void> deleteNewsId(@PathVariable("id") UUID newsId, JwtAuthenticationToken idToken) {
 
         Collection<GrantedAuthority> authoritiesOfAuthenticatedUser = idToken.getAuthorities();
 
@@ -262,7 +297,7 @@ public class CommentsController implements CommentsControllerSpec {
 
     @PostMapping("/news-ids")
     @Secured({RoleConstants.ADMIN, RoleConstants.JOURNALIST})
-    public ResponseEntity<?> createNewsId(@RequestBody UUID newsId, JwtAuthenticationToken idToken) {
+    public ResponseEntity<Void> createNewsId(@RequestBody UUID newsId, JwtAuthenticationToken idToken) {
 
         UUID authorId = UUID.fromString(idToken.getName());
 

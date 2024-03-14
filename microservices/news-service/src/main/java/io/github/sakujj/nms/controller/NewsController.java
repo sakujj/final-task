@@ -116,7 +116,7 @@ public class NewsController implements NewsControllerSpec {
     }
 
     @DeleteMapping("/{newsId}/comments/{commentId}")
-    public ResponseEntity<?> deleteComment(
+    public ResponseEntity<Void> deleteComment(
             @PathVariable("newsId") UUID newsId,
             @PathVariable("commentId") UUID commentId,
             JwtAuthenticationToken idToken) {
@@ -134,8 +134,8 @@ public class NewsController implements NewsControllerSpec {
         return commentsClient.update(commentUpdateRequest, commentId, AuthUtils.getBearerAuthHeaderValue(idToken));
     }
 
-    @GetMapping
-    public ResponseEntity<Page<NewsResponse>> findAll(
+    @GetMapping(params = {CONTAINED_IN_USERNAME_PARAM_NAME, CONTAINED_IN_TITLE_PARAM_NAME})
+    public ResponseEntity<Page<NewsResponse>> findAllWithContainedInUsernameAndContainedInTitle(
             @Min(MIN_PAGE_NUMBER)
             @RequestParam(value = PAGE_NUMBER_PARAM_NAME, defaultValue = PAGE_NUMBER_DEFAULT_VAL)
             Integer pageNumber,
@@ -145,39 +145,77 @@ public class NewsController implements NewsControllerSpec {
             @RequestParam(value = PAGE_SIZE_PARAM_NAME, defaultValue = PAGE_SIZE_DEFAULT_VAL)
             Integer pageSize,
 
-            @RequestParam(required = false, value = CONTAINED_IN_USERNAME_PARAM_NAME)
+            @RequestParam(CONTAINED_IN_USERNAME_PARAM_NAME)
             String containedInUsername,
 
-            @RequestParam(required = false, value = CONTAINED_IN_TITLE_PARAM_NAME)
+            @RequestParam(CONTAINED_IN_TITLE_PARAM_NAME)
             String containedInTitle) {
 
-        if (containedInTitle != null && containedInUsername != null) {
-            Page<NewsResponse> pageFound = newsService.findByTitleContainingAndUsernameContaining(
+                    Page<NewsResponse> pageFound = newsService.findByTitleContainingAndUsernameContaining(
                     containedInTitle,
                     containedInUsername,
                     pageNumber,
                     pageSize);
 
             return getFoundPageResponseEntity(pageFound);
-        }
+    }
 
-        if (containedInUsername != null) {
-            Page<NewsResponse> pageFound = newsService.findByUsernameContaining(
-                    containedInUsername,
-                    pageNumber,
-                    pageSize);
+    @GetMapping(params = {CONTAINED_IN_USERNAME_PARAM_NAME, "!" + CONTAINED_IN_TITLE_PARAM_NAME})
+    public ResponseEntity<Page<NewsResponse>> findAllWithContainedInUsername(
+            @Min(MIN_PAGE_NUMBER)
+            @RequestParam(value = PAGE_NUMBER_PARAM_NAME, defaultValue = PAGE_NUMBER_DEFAULT_VAL)
+            Integer pageNumber,
 
-            return getFoundPageResponseEntity(pageFound);
-        }
+            @Min(MIN_PAGE_SIZE)
+            @Max(MAX_PAGE_SIZE)
+            @RequestParam(value = PAGE_SIZE_PARAM_NAME, defaultValue = PAGE_SIZE_DEFAULT_VAL)
+            Integer pageSize,
 
-        if (containedInTitle != null) {
-            Page<NewsResponse> pageFound = newsService.findByTitleContaining(
-                    containedInTitle,
-                    pageNumber,
-                    pageSize);
+            @RequestParam(CONTAINED_IN_USERNAME_PARAM_NAME)
+            String containedInUsername) {
 
-            return getFoundPageResponseEntity(pageFound);
-        }
+        Page<NewsResponse> pageFound = newsService.findByUsernameContaining(
+                containedInUsername,
+                pageNumber,
+                pageSize);
+
+        return getFoundPageResponseEntity(pageFound);
+    }
+
+    @GetMapping(params = {"!" + CONTAINED_IN_USERNAME_PARAM_NAME, CONTAINED_IN_TITLE_PARAM_NAME})
+    public ResponseEntity<Page<NewsResponse>> findAllWithContainedInTitle(
+            @Min(MIN_PAGE_NUMBER)
+            @RequestParam(value = PAGE_NUMBER_PARAM_NAME, defaultValue = PAGE_NUMBER_DEFAULT_VAL)
+            Integer pageNumber,
+
+            @Min(MIN_PAGE_SIZE)
+            @Max(MAX_PAGE_SIZE)
+            @RequestParam(value = PAGE_SIZE_PARAM_NAME, defaultValue = PAGE_SIZE_DEFAULT_VAL)
+            Integer pageSize,
+
+            @RequestParam(CONTAINED_IN_TITLE_PARAM_NAME)
+            String containedInTitle) {
+
+        Page<NewsResponse> pageFound = newsService.findByTitleContaining(
+                containedInTitle,
+                pageNumber,
+                pageSize);
+
+        return getFoundPageResponseEntity(pageFound);
+    }
+
+
+
+    @GetMapping(params = {"!" + CONTAINED_IN_USERNAME_PARAM_NAME, "!" + CONTAINED_IN_TITLE_PARAM_NAME})
+    public ResponseEntity<Page<NewsResponse>> findAll(
+            @Min(MIN_PAGE_NUMBER)
+            @RequestParam(value = PAGE_NUMBER_PARAM_NAME, defaultValue = PAGE_NUMBER_DEFAULT_VAL)
+            Integer pageNumber,
+
+            @Min(MIN_PAGE_SIZE)
+            @Max(MAX_PAGE_SIZE)
+            @RequestParam(value = PAGE_SIZE_PARAM_NAME, defaultValue = PAGE_SIZE_DEFAULT_VAL)
+            Integer pageSize) {
 
         Page<NewsResponse> pageFound = newsService.findAll(pageNumber, pageSize);
 
@@ -203,7 +241,7 @@ public class NewsController implements NewsControllerSpec {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable("id") UUID newsId, JwtAuthenticationToken idToken) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID newsId, JwtAuthenticationToken idToken) {
 
         Collection<GrantedAuthority> authoritiesOfAuthenticatedUser = idToken.getAuthorities();
 

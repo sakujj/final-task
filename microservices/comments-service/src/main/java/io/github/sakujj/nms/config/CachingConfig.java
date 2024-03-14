@@ -24,7 +24,7 @@ public class CachingConfig {
     public static final String COMMENTS_CACHE_NAME = "comments-cache";
 
     @Bean
-    RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory, ObjectMapper objectMapper) {
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory, ObjectMapper objectMapper) {
 
         var serializer = new Jackson2JsonRedisSerializer<>(objectMapper, CommentResponse.class);
 

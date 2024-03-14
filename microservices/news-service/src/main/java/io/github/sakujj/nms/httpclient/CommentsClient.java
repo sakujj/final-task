@@ -57,7 +57,7 @@ public interface CommentsClient {
 
 
     @DeleteMapping("/comments/{id}")
-    ResponseEntity<?> delete(@PathVariable("id") UUID commentId,
+    ResponseEntity<Void> delete(@PathVariable("id") UUID commentId,
                              @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeaderValue);
 
 

@@ -32,8 +32,8 @@ services:
     build:
       context: ../
       dockerfile: Dockerfile-comments-service
-    ports:
-      - "8092:8092"
+#    ports:
+#      - "8092:8092"
     networks:
       - mynet
 

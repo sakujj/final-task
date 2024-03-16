@@ -11,7 +11,8 @@ spring.security:
   oauth2:
     client:
       provider.keycloak:
-        issuer-uri: http://keycloak:8080/realms/sakujj
+#        issuer-uri: http://keycloak:8080/realms/sakujj
+        issuer-uri: http://host.docker.internal:8080/realms/sakujj
     resourceserver:
       jwt:
-        issuer-uri: http://keycloak:8080/realms/sakujj
+        issuer-uri: http://host.docker.internal:8080/realms/sakujj

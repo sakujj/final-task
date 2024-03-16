@@ -1,11 +1,6 @@
 <h1>Финалити</h1>
 <h3>Для запуска необходимо: </h3>
 <ol>
-<li> Прописать <code>127.0.0.1 keycloak</code>  в вашем <code>/etc/hosts</code> файле (Linux) или 
-<code>C:\Windows\System32\drivers\etc\hosts</code> (Windows). 
-Это необходимо для того, чтобы работал Authorization Code Flow (OAuth2), 
-а именно чтобы браузер мог быть перенаправлен на url с доменом keykloak.</li>
-
 <li> Запустить следущие команды находясь в корневой папке: 
     <ol style="list-style-type:lower-greek">
         <li>

@@ -74,10 +74,10 @@ public class CommentsController implements CommentsControllerSpec {
             @RequestParam(value = PAGE_SIZE_PARAM_NAME, defaultValue = PAGE_SIZE_DEFAULT_VAL)
             Integer pageSize,
 
-            @RequestParam(value = CONTAINED_IN_USERNAME_PARAM_NAME)
+            @RequestParam(CONTAINED_IN_USERNAME_PARAM_NAME)
             String containedInUsername,
 
-            @RequestParam(value = NEWS_ID_PARAM_NAME)
+            @RequestParam(NEWS_ID_PARAM_NAME)
             UUID newsId) {
 
         Page<CommentResponse> pageFound = commentService.findByNewsIdAndUsernameContaining(
@@ -100,7 +100,7 @@ public class CommentsController implements CommentsControllerSpec {
             @RequestParam(value = PAGE_SIZE_PARAM_NAME, defaultValue = PAGE_SIZE_DEFAULT_VAL)
             Integer pageSize,
 
-            @RequestParam(value = NEWS_ID_PARAM_NAME)
+            @RequestParam(NEWS_ID_PARAM_NAME)
             UUID newsId) {
 
             Page<CommentResponse> pageFound = commentService.findByNewsId(
@@ -122,7 +122,7 @@ public class CommentsController implements CommentsControllerSpec {
             @RequestParam(value = PAGE_SIZE_PARAM_NAME, defaultValue = PAGE_SIZE_DEFAULT_VAL)
             Integer pageSize,
 
-            @RequestParam(value = CONTAINED_IN_USERNAME_PARAM_NAME)
+            @RequestParam(CONTAINED_IN_USERNAME_PARAM_NAME)
             String containedInUsername) {
 
         Page<CommentResponse> pageFound = commentService.findByUsernameContaining(

@@ -1,5 +1,4 @@
 services:
-
   redis:
     build:
       context: .
@@ -32,8 +31,6 @@ services:
     build:
       context: ../
       dockerfile: Dockerfile-comments-service
-#    ports:
-#      - "8092:8092"
     networks:
       - mynet
 
@@ -51,6 +48,8 @@ services:
       - mynet
     ports:
       - "8081:8090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   eureka:
     environment:
@@ -113,11 +112,10 @@ services:
       - KEYCLOAK_ADMIN=${KEYCLOAK_USER}
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_PASSWORD}
     ports:
-      - "127.0.0.1:8080:8080"
+      - "8080:8080"
     networks:
       - keycloak-net
       - mynet
-
 
 networks:
   keycloak-net:

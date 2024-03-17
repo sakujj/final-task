@@ -18,7 +18,9 @@ services:
       context: ../
       dockerfile: Dockerfile-news-service
     networks:
-    - mynet
+      - mynet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   comments-sevice:
     environment:
@@ -33,6 +35,8 @@ services:
       dockerfile: Dockerfile-comments-service
     networks:
       - mynet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   api-gateway:
     environment:

@@ -7,7 +7,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://keycloak:8080/realms/sakujj
+          issuer-uri: http://host.docker.internal:8080/realms/sakujj
   datasource:
     url: jdbc:postgresql://postgres_news:5432/main_db
 

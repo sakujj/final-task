@@ -4,6 +4,7 @@ import feign.FeignException;
 import jakarta.validation.ConstraintViolationException;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
@@ -52,6 +53,7 @@ public class RestExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.SC_UNAUTHORIZED)
+                .header(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"Access to comments\"")
                 .body(apiError);
     }
 

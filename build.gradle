@@ -1,19 +1,16 @@
 import java.util.stream.Collectors
 
-ext {
-    customCacheStarter = project(":aop-cache-spring-boot-starter").name
-    microservices = [
-            ":microservices:api-gateway",
-            ":microservices:comments-service",
-            ":microservices:eureka-server",
-            ":microservices:news-service"
-    ]
-}
-
 tasks.register('prepareForDocker') {
 
-    def tasksToDependOnOrdered = new ArrayList<>()
+    def customCacheStarter = project(":aop-cache-spring-boot-starter").name
 
+    def microservices = project(":microservices")
+            .getSubprojects()
+            .stream()
+            .map(p -> p.getParent().getName() + ":" + p.getName())
+            .toList()
+
+    def tasksToDependOnOrdered = new ArrayList<>()
 
     tasksToDependOnOrdered.addAll(microservices
             .stream()

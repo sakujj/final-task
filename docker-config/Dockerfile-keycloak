@@ -1,0 +1,5 @@
+FROM keycloak/keycloak:nightly
+
+COPY ./realm/data /opt/keycloak/data/import
+
+CMD ["start-dev", "--import-realm"]

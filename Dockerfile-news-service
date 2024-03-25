@@ -1,0 +1,5 @@
+FROM openjdk:17-jdk-alpine
+
+ARG JAR_FILE=microservices/news-service/build/libs/news-service-1.0.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar /app.jar"]

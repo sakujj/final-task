@@ -1,0 +1,7 @@
+rootProject.name = "nms-backend"
+include 'microservices:news-service'
+include 'microservices:comments-service'
+include 'microservices:api-gateway'
+include 'microservices:eureka-server'
+include 'aop-cache-spring-boot-starter'
+

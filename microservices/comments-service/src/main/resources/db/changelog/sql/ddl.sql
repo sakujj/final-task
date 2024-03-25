@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS news_id (
+    id UUID PRIMARY KEY NOT NULL,
+
+    author_id UUID NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS comment (
+    id UUID PRIMARY KEY NOT NULL,
+    text VARCHAR(5000) NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    creation_time TIMESTAMP NOT NULL,
+    update_time TIMESTAMP NOT NULL,
+
+    author_id UUID NOT NULL,
+    news_id UUID REFERENCES news_id(id) ON DELETE CASCADE NOT NULL
+);
+
+

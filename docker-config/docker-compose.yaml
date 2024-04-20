@@ -1,0 +1,126 @@
+services:
+  redis:
+    build:
+      context: .
+      dockerfile: Dockerfile-redis
+    networks:
+      - mynet
+
+  news-sevice:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+    - postgres_news
+    - api-gateway
+    - eureka
+    restart: unless-stopped
+    build:
+      context: ../
+      dockerfile: Dockerfile-news-service
+    networks:
+      - mynet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  comments-sevice:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - postgres_comments
+      - api-gateway
+      - eureka
+    restart: unless-stopped
+    build:
+      context: ../
+      dockerfile: Dockerfile-comments-service
+    networks:
+      - mynet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  api-gateway:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+    - keycloak
+    - eureka
+    restart: unless-stopped
+    build:
+      context: ../
+      dockerfile: Dockerfile-api-gateway
+    networks:
+      - mynet
+    ports:
+      - "8081:8090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  eureka:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    restart: unless-stopped
+    build:
+      context: ../
+      dockerfile: Dockerfile-discovery-server
+    networks:
+      - mynet
+
+  postgres_news:
+    build:
+      context: .
+      dockerfile: Dockerfile-postgres-news
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - mynet
+
+  postgres_comments:
+    build:
+      context: .
+      dockerfile: Dockerfile-postgres-comments
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - mynet
+
+
+  postgres_keycloak:
+    build:
+      context: .
+      dockerfile: Dockerfile-postgres-keycloak
+    environment:
+      - POSTGRES_USER=${KEYCLOAK_POSTGRES_USER}
+      - POSTGRES_DB=${KEYCLOAK_POSTGRES_DB}
+      - POSTGRES_PASSWORD=${KEYCLOAK_POSTGRES_PASSWORD}
+    networks:
+      - keycloak-net
+
+
+  keycloak:
+    depends_on:
+      - postgres_keycloak
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile-keycloak
+    environment:
+      - KC_DB=postgres
+      - KC_DB_USERNAME=${KEYCLOAK_POSTGRES_USER}
+      - KC_DB_PASSWORD=${KEYCLOAK_POSTGRES_PASSWORD}
+      - KC_DB_URL=jdbc:postgresql://postgres_keycloak:5432/${KEYCLOAK_POSTGRES_DB}
+
+      - KEYCLOAK_ADMIN=${KEYCLOAK_USER}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_PASSWORD}
+    ports:
+      - "8080:8080"
+    networks:
+      - keycloak-net
+      - mynet
+
+networks:
+  keycloak-net:
+  mynet:

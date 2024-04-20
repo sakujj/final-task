@@ -1,0 +1,5 @@
+FROM openjdk:17-jdk-alpine
+
+ARG JAR_FILE=microservices/api-gateway/build/libs/api-gateway-1.0.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar /app.jar"]
